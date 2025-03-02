@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NYC Fire Stations</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      crossorigin=""
+    />
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      crossorigin=""
+    ></script>
+
+    <style>
+      #map {
+        width: 100%;
+        height: 500px;
+      }
+      /* Table styling taken frmo the examples and also for hw 4b */
+      /* slider taken from example D*/
+      table {
+        font-family: "Times New Roman", Times, serif, sans-serif;
+        border-collapse: collapse;
+        width: 1250px;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        margin-top: 20px;
+      }
+
+      td,
+      th {
+        border: 1px solid #bc3333;
+        text-align: left;
+        padding: 10px;
+      }
+
+      tr:nth-child(even) {
+        background-color: #dddddd;
+      }
+
+      .high {
+        background-color: rgb(96, 96, 92);
+      }
+
+      .low {
+        background-color: gray;
+      }
+      .slidecontainer {
+        width: 100%;
+      }
+
+      .slider {
+        -webkit-appearance: none;
+        width: 50%;
+        height: 25px;
+        background: #ecb4b4;
+        outline: none;
+        opacity: 0.7;
+        -webkit-transition: 0.2s;
+        transition: opacity 0.2s;
+      }
+
+      .slider:hover {
+        opacity: 1;
+      }
+
+      .slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 25px;
+        height: 25px;
+        background: #de0d0d;
+        cursor: pointer;
+      }
+
+      .slider::-moz-range-thumb {
+        width: 25px;
+        height: 25px;
+        background: #f41505;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h3>NYC FireStations Map</h3>
+    <h2 id="stationName">Station Name:</h2>
+    <div class="slidecontainer">
+      <input type="range"
+        min="0" max="100" value="0"
+        class="slider" id="myStationRange"
+        oninput="moveSlider(this.value)"
+      />
+
+      <!--      Date: <span id="demo"></span> -->
+    </div>
+    <div id="map"></div>
+
+    <script src="data.js"></script>
+    <!-- Loads my GeoJSON as data.js for prof nazario to ctrl f this is for HW 4A -->
+
+    <script>
+      var map = L.map("map");
+
+      var bounds = L.geoJSON(NYC_FireStations).getBounds();
+      map.fitBounds(bounds);
+
+      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      }).addTo(map);
+
+      var fireStationIcon = L.icon({
+        iconUrl: "FS_IMG.png",
+        iconSize: [17, 28],
+        iconAnchor: [40, 22],
+        popupAnchor: [0, 0],
+      });
+    </script>
+
+    <!-- TABLE CODE OF NYC Fire Stations FOR HW 4b-->
+    <h2 style="font-family: 'Times New Roman', sans-serif; color: #007acc">
+      NYC Fire Stations Data
+    </h2>
+    <table id="mytable">
+      <tr>
+        <th>Station Name</th>
+        <th>Address</th>
+      </tr>
+    </table>
+
+    <script>
+      var myTable = document.getElementById("mytable");
+
+      // Iterates through the geojson and then adds fire stations to the table, got from example
+      NYC_FireStations.features.forEach((element) => {
+        makeCell(element);
+      });
+
+      function makeCell(feature) {
+        var row = document.createElement("tr");
+        var cellName = document.createElement("td");
+        var cellAddress = document.createElement("td");
+
+        // Cell has the name and address properties of the fire station (address)
+        cellName.innerHTML = feature.properties.Name;
+        cellAddress.innerHTML = feature.properties.Address;
+        myTable.append(row);
+        row.append(cellName);
+        row.append(cellAddress);
+      }
+    </script>
+
+    <script>
+      // hold marker
+      var slidersMarker;
+
+
+      document.getElementById("myStationRange") = NYC_FireStations.features.length;
+
+      // From example w droughts
+      function moveSlider(value) {
+        var feature = NYC_FireStations.features[value];
+        var lat = feature.geometry.coordinates[1]; // latitude is the second value in the array in geojson
+        var lon = feature.geometry.coordinates[0];
+
+        // Remove marker if it exists somewehere else on the leaflet map
+        if (slidersMarker) {
+          map.removeLayer(slidersMarker);
+        }
+
+
+        document.getElementById("stationName").innerHTML =
+          "Station Name: " + feature.properties.Name;
+
+        // Create new marker for the slider when its moved and has it sdescriptions
+        slidersMarker = L.marker([lat, lon], { icon: fireStationIcon })
+          .bindPopup(
+            "<strong>Station Name:</strong> " +
+              feature.properties.Name +
+              "<br><strong>Address:</strong> " +
+              feature.properties.Address +
+              "<br><strong>Phone:</strong> " +
+              feature.properties.Phone
+          )
+          .addTo(map);
+      }
+      // makes sure the slider starts at 0 (this isnt working its from example)
+      moveSlider(0) // start the map with the first feature
+        window.onload = function() {
+        document.getElementById('myStationRange').value = 0;}
+
+
+
+
+
+
+      // for when the slider changes. also i m just referencing this VVVV
+      // hurricane = L.geoJSON(pts.features.slice(0,this.value), // select the values from 0 to the slider input using the slice array method
+    </script>
+  </body>
+</html>
